@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .saved-recipes {
+            margin-bottom: 40px;
+        }
+
+        .saved-recipes h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        #sortSelect {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: white;
+        }
+
+        .saved-recipes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .recipe-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .recipe-card-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .recipe-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: none;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .saved-recipe-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+        }
+
+        .saved-recipe-content {
+            padding: 20px;
+        }
+
+        .recipe-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .recipe-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .recipe-tags {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tag-link {
+            text-decoration: none;
+        }
+
+        .recipe-tag {
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            transition: background-color 0.2s;
+        }
+
+        .recipe-tag:hover {
+            background-color: #ced4da;
+        }
+
+        .recipe-nutrition {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .nutrition-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .nutrition-badge.empty {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            z-index: 1000;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+        }
+        .fab i {
+            color: white;
+            font-size: 24px;
+        }
+
+        /* FAB Menu */
+        .fab-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transform: scale(0);
+            transform-origin: bottom right;
+            transition: transform 0.2s ease;
+            z-index: 999;
+        }
+        .fab-menu.open {
+            transform: scale(1);
+        }
+
+        .fab-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            min-width: 200px;
+        }
+        .fab-menu-item:hover {
+            background-color: #f8f9fa;
+        }
+        .fab-menu-item:not(:last-child) {
+            border-bottom: 1px solid #eee;
+        }
+        .fab-menu-item i {
+            margin-right: 12px;
+            font-size: 18px;
+        }
+        .fab-menu-item span {
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 998;
+        }
+        .modal-overlay.show {
+            display: block;
+        }
+
+        /* Recipe Form Modal */
+        .recipe-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 800px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 999;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .recipe-modal.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .saved-recipes-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .fab {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .fab-menu {
+                bottom: 90px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍳 Recipe Collection</h1>
+            <p>Your personal recipe library</p>
+        </div>
+
+        <div class="saved-recipes">
+            <h2>📚 Your Recipes</h2>
+            <div class="filter-controls">
+                <input type="search" id="searchInput" placeholder="Search by title or ingredients...">
+                <select id="sortSelect">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="title_asc">Title (A-Z)</option>
+                    <option value="title_desc">Title (Z-A)</option>
+                </select>
+            </div>
+            <div id="savedRecipesList" class="saved-recipes-grid"></div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" id="fab">
+        <i>+</i>
+    </div>
+
+    <!-- FAB Menu -->
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-menu-item" id="manualEntryOption">
+            <i>📝</i>
+            <span>Add Recipe Manually</span>
+        </div>
+        <div class="fab-menu-item" id="extractOption">
+            <i>🔗</i>
+            <span>Extract from Instagram</span>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- Recipe Form Modal -->
+    <div class="recipe-modal" id="recipeModal">
+        <div class="modal-header">
+            <h2 id="modalTitle">Add New Recipe</h2>
+            <button class="modal-close" id="modalClose">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing...</p>
+            </div>
+
+            <div id="message" class="message"></div>
+
+            <!-- Manual Entry Form -->
+            <div id="manualForm">
+                <div id="rawTextSection" class="form-group" style="display: none;">
+                    <label for="rawTextOutput">Extracted Raw Text (copy from here to fields below)</label>
+                    <textarea id="rawTextOutput" readonly style="min-height: 150px; background-color: #f8f9fa; font-family: 'Menlo', 'Courier New', monospace; font-size: 13px;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="recipeTitle">Recipe Title *</label>
+                    <input type="text" id="recipeTitle" placeholder="Enter recipe title..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="recipeImageUrl">Image URL (optional)</label>
+                    <input type="url" id="recipeImageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <div class="form-group">
+                    <label>Nutrition Information (optional)</label>
+                    <div class="nutrition-grid">
+                        <input type="text" id="servings" placeholder="Servings">
+                        <input type="text" id="calories" placeholder="Calories">
+                        <input type="text" id="protein" placeholder="Protein">
+                        <input type="text" id="fat" placeholder="Fat">
+                        <input type="text" id="carbs" placeholder="Carbs">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ingredients">Ingredients *</label>
+                    <textarea id="ingredients" placeholder="Enter ingredients, one per line..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="instructions">Instructions *</label>
+                    <textarea id="instructions" placeholder="Enter instructions, one per line..."></textarea>
+                </div>
+
+                <div style="text-align: right;">
+                    <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                    <button class="btn btn-primary" id="saveBtn">Save Recipe</button>
+                </div>
+            </div>
+
+            <!-- Instagram Extraction Form -->
+            <div id="extractForm" style="display: none;">
+                <div class="form-group">
+                    <label for="instagramUrl">Instagram URL *</label>
+                    <input type="url" id="instagramUrl" placeholder="Paste Instagram post/reel URL here..." required>
+                </div>
+
+                <div style="text-align: right;">
+                    <button class="btn btn-secondary" id="cancelExtractBtn">Cancel</button>
+                    <button class="btn btn-primary" id="extractBtn">Extract Recipe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const fab = document.getElementById('fab');
+            const fabMenu = document.getElementById('fabMenu');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const recipeModal = document.getElementById('recipeModal');
+            const modalClose = document.getElementById('modalClose');
+            const modalTitle = document.getElementById('modalTitle');
+            const manualEntryOption = document.getElementById('manualEntryOption');
+            const extractOption = document.getElementById('extractOption');
+            const manualForm = document.getElementById('manualForm');
+            const extractForm = document.getElementById('extractForm');
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
+            const message = document.getElementById('message');
+
+            // Form elements
+            const recipeTitle = document.getElementById('recipeTitle');
+            const recipeImageUrl = document.getElementById('recipeImageUrl');
+            const servings = document.getElementById('servings');
+            const calories = document.getElementById('calories');
+            const protein = document.getElementById('protein');
+            const fat = document.getElementById('fat');
+            const carbs = document.getElementById('carbs');
+            const ingredients = document.getElementById('ingredients');
+            const instructions = document.getElementById('instructions');
+            const instagramUrl = document.getElementById('instagramUrl');
+
+            // Buttons
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const extractBtn = document.getElementById('extractBtn');
+            const cancelExtractBtn = document.getElementById('cancelExtractBtn');
+            const searchInput = document.getElementById('searchInput');
+            const sortSelect = document.getElementById('sortSelect');
+
+            // Load saved recipes on page load
+            loadSavedRecipes();
+
+            // FAB Menu Toggle
+            fab.addEventListener('click', function() {
+                fabMenu.classList.toggle('open');
+            });
+
+            // Close FAB menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!fab.contains(e.target) && !fabMenu.contains(e.target)) {
+                    fabMenu.classList.remove('open');
+                }
+            });
+
+            // Manual Entry Option
+            manualEntryOption.addEventListener('click', function() {
+                showModal('Add Recipe Manually', 'manual');
+                fabMenu.classList.remove('open');
+            });
+
+            // Extract Option
+            extractOption.addEventListener('click', function() {
+                showModal('Extract from Instagram', 'extract');
+                fabMenu.classList.remove('open');
+            });
+
+            // Modal Controls
+            modalClose.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+            cancelExtractBtn.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', closeModal);
+
+            // Form Submissions
+            saveBtn.addEventListener('click', saveRecipe);
+            extractBtn.addEventListener('click', extractRecipe);
+
+            // Search and Sort listeners
+            searchInput.addEventListener('input', () => {
+                // Debounce search input
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(loadSavedRecipes, 300);
+            });
+            sortSelect.addEventListener('change', loadSavedRecipes);
+
+            function showModal(title, type) {
+                modalTitle.textContent = title;
+                modalOverlay.classList.add('show');
+                recipeModal.classList.add('show');
+                
+                if (type === 'manual') {
+                    manualForm.style.display = 'block';
+                    extractForm.style.display = 'none';
+                    document.getElementById('rawTextSection').style.display = 'none';
+                } else {
+                    manualForm.style.display = 'none';
+                    extractForm.style.display = 'block';
+                }
+                
+                hideMessage();
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('show');
+                recipeModal.classList.remove('show');
+                fabMenu.classList.remove('open');
+                
+                // Clear forms
+                clearForms();
+                // Clear stored data
+                window.currentRecipeRawText = '';
+                // Hide raw text section
+                document.getElementById('rawTextSection').style.display = 'none';
+            }
+
+            function clearForms() {
+                recipeTitle.value = '';
+                recipeImageUrl.value = '';
+                servings.value = '';
+                calories.value = '';
+                protein.value = '';
+                fat.value = '';
+                carbs.value = '';
+                ingredients.value = '';
+                instructions.value = '';
+                instagramUrl.value = '';
+            }
+
+            async function saveRecipe() {
+                const title = recipeTitle.value.trim();
+                if (!title) {
+                    showMessage('Please enter a recipe title.', 'error');
+                    return;
+                }
+
+                const ingredientsList = ingredients.value.split('\n').filter(line => line.trim() !== '');
+                const instructionsList = instructions.value.split('\n').filter(line => line.trim() !== '');
+
+                if (ingredientsList.length === 0 || instructionsList.length === 0) {
+                    showMessage('Please add at least one ingredient and one instruction step.', 'error');
+                    return;
+                }
+
+                const recipeData = {
+                    title: title,
+                    ingredients: ingredientsList,
+                    steps: instructionsList,
+                    description: `${ingredientsList.length} ingredients | ${instructionsList.length} steps`,
+                    image_url: recipeImageUrl.value.trim(),
+                    servings: servings.value.trim(),
+                    calories: calories.value.trim(),
+                    protein: protein.value.trim(),
+                    fat: fat.value.trim(),
+                    carbs: carbs.value.trim(),
+                    raw_text: window.currentRecipeRawText || ''
+                };
+
+                try {
+                    const response = await fetch('/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ recipe: recipeData })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Recipe saved successfully!', 'success');
+                        loadSavedRecipes();
+                        setTimeout(closeModal, 1500);
+                    } else {
+                        showMessage(data.error, 'error');
+                    }
+                } catch (error) {
+                    showMessage('Failed to save recipe', 'error');
+                }
+            }
+
+            async function extractRecipe() {
+                const url = instagramUrl.value.trim();
+                
+                if (!url) {
+                    showMessage('Please enter a valid Instagram URL', 'error');
+                    return;
+                }
+
+                showLoading('Extracting recipe from Instagram...');
+                hideMessage();
+
+                try {
+                    const response = await fetch('/extract', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ url: url })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.error) {
+                        hideLoading();
+                        showMessage(data.error, 'error');
+                    } else {
+                        hideLoading();
+                        // Switch to manual form with extracted data
+                        modalTitle.textContent = 'Review & Edit Recipe';
+                        manualForm.style.display = 'block';
+                        extractForm.style.display = 'none';
+                        
+                        // Populate form with extracted data
+                        recipeTitle.value = data.title || '';
+                        recipeImageUrl.value = data.image_url || '';
+                        ingredients.value = '';
+                        instructions.value = '';
+                        
+                        // Show and populate raw text section
+                        const rawTextSection = document.getElementById('rawTextSection');
+                        const rawTextOutput = document.getElementById('rawTextOutput');
+
+                        if (data.raw_text) {
+                            rawTextOutput.value = data.raw_text;
+                            rawTextSection.style.display = 'block';
+                        } else {
+                            rawTextSection.style.display = 'none';
+                        }
+                        
+                        // Store raw text for saving
+                        window.currentRecipeRawText = data.raw_text || '';
+                    }
+                } catch (error) {
+                    hideLoading();
+                    showMessage('Failed to extract recipe. Please try again.', 'error');
+                }
+            }
+
+            async function loadSavedRecipes() {
+                const searchQuery = searchInput.value;
+                const sortOrder = sortSelect.value;
+                const params = new URLSearchParams(window.location.search);
+                const tagFilter = params.get('tag') || '';
+                
+                let url = `/recipes?search=${encodeURIComponent(searchQuery)}&sort=${sortOrder}`;
+                if (tagFilter) {
+                    url += `&tag=${encodeURIComponent(tagFilter)}`;
+                }
+
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    const savedRecipesList = document.getElementById('savedRecipesList');
+                    savedRecipesList.innerHTML = '';
+
+                    if (data.recipes && data.recipes.length > 0) {
+                        data.recipes.forEach(recipe => {
+                            const recipeLink = document.createElement('a');
+                            recipeLink.href = `/recipe/${recipe.id}`;
+                            recipeLink.className = 'recipe-card-link';
+
+                            // Create nutrition badges
+                            const nutritionBadges = [];
+                            if (recipe.servings) {
+                                nutritionBadges.push(`<span class="nutrition-badge">🍽️ ${recipe.servings}</span>`);
+                            }
+                            if (recipe.calories) {
+                                nutritionBadges.push(`<span class="nutrition-badge">🔥 ${recipe.calories}</span>`);
+                            }
+                            if (recipe.protein) {
+                                nutritionBadges.push(`<span class="nutrition-badge">💪 ${recipe.protein}</span>`);
+                            }
+                            if (recipe.fat) {
+                                nutritionBadges.push(`<span class="nutrition-badge">🥑 ${recipe.fat}</span>`);
+                            }
+                            if (recipe.carbs) {
+                                nutritionBadges.push(`<span class="nutrition-badge">🌾 ${recipe.carbs}</span>`);
+                            }
+
+                            // If no nutrition data, show placeholder
+                            if (nutritionBadges.length === 0) {
+                                nutritionBadges.push(`<span class="nutrition-badge empty">📝 ${recipe.ingredients.length} ingredients</span>`);
+                                nutritionBadges.push(`<span class="nutrition-badge empty">👨‍🍳 ${recipe.steps.length} steps</span>`);
+                            }
+
+                            // Create tags
+                            const tagsHtml = recipe.tags.map(tag => `
+                                <a href="/?tag=${encodeURIComponent(tag)}" class="tag-link">
+                                    <span class="recipe-tag">#${tag}</span>
+                                </a>
+                            `).join('');
+
+                            recipeLink.innerHTML = `
+                                <div class="recipe-card">
+                                    <img src="${recipe.image_url || 'https://placehold.co/400x300?text=No+Image'}" alt="Recipe Image" class="saved-recipe-image">
+                                    <div class="saved-recipe-content">
+                                        <h4>${recipe.title || 'Untitled Recipe'}</h4>
+                                        <p>${recipe.description || 'No description'}</p>
+                                        <div class="recipe-nutrition">
+                                            ${nutritionBadges.join('')}
+                                        </div>
+                                        <div class="recipe-tags">
+                                            ${tagsHtml}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            savedRecipesList.appendChild(recipeLink);
+                        });
+                    } else {
+                        savedRecipesList.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #666; font-style: italic;">No saved recipes yet. Click the + button to add your first recipe!</p>';
+                    }
+                } catch (error) {
+                    console.error('Failed to load saved recipes:', error);
+                    const savedRecipesList = document.getElementById('savedRecipesList');
+                    savedRecipesList.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #d9534f;">Could not load recipes. Please try again.</p>';
+                }
+            }
+
+            function showLoading(text) {
+                loadingText.textContent = text;
+                loading.style.display = 'block';
+            }
+
+            function hideLoading() {
+                loading.style.display = 'none';
+            }
+
+            function showMessage(text, type) {
+                message.textContent = text;
+                message.className = `message ${type}`;
+                message.style.display = 'block';
+            }
+
+            function hideMessage() {
+                message.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

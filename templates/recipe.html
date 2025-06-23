@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ recipe.title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .recipe-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+        .recipe-header {
+            padding: 40px;
+            text-align: center;
+        }
+        .recipe-header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .recipe-header p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .nutrition-facts {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .fact {
+            text-align: center;
+        }
+        .fact-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .fact-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .recipe-body {
+            padding: 0 40px 40px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 40px;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .ingredients-list, .steps-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .ingredients-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1.1rem;
+        }
+        .steps-list li {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            display: flex;
+        }
+        .step-number {
+            font-weight: 600;
+            margin-right: 15px;
+            color: #667eea;
+        }
+        .back-link {
+            display: inline-block;
+            margin: 20px 0 0 40px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .edit-btn {
+            display: inline-block;
+            margin: 20px 0 0 20px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .edit-btn:hover {
+            background: #218838;
+        }
+        .save-btn {
+            display: inline-block;
+            margin: 20px 0 0 20px;
+            padding: 10px 20px;
+            background: #ff6b6b;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .save-btn:hover {
+            background: #ee5a24;
+        }
+        .cancel-btn {
+            display: inline-block;
+            margin: 20px 0 0 20px;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .cancel-btn:hover {
+            background: #5a6268;
+        }
+        .edit-mode {
+            display: none;
+        }
+        .view-mode {
+            display: block;
+        }
+        .edit-mode .recipe-header h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .edit-mode input, .edit-mode textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        .edit-mode textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .nutrition-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .nutrition-input {
+            display: flex;
+            flex-direction: column;
+        }
+        .nutrition-input label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .nutrition-input input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .timestamp-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .timestamp-info span {
+            margin: 0 15px;
+        }
+        .recipe-timestamps {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .tag-input-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #tagInput {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to All Recipes</a>
+    <button id="editBtn" class="edit-btn">✏️ Edit Recipe</button>
+    <button id="saveBtn" class="save-btn" style="display: none;">💾 Save Changes</button>
+    <button id="cancelBtn" class="cancel-btn" style="display: none;">❌ Cancel</button>
+    
+    <div id="message" class="message"></div>
+    
+    <div class="container">
+        <!-- View Mode -->
+        <div id="viewMode" class="view-mode">
+            <img src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="recipe-image">
+            <div class="recipe-header">
+                <h1>{{ recipe.title }}</h1>
+                <p>{{ recipe.description }}</p>
+                <div class="nutrition-facts">
+                    {% if recipe.servings %}
+                    <div class="fact">
+                        <div class="fact-value">{{ recipe.servings }}</div>
+                        <div class="fact-label">Servings</div>
+                    </div>
+                    {% endif %}
+                    {% if recipe.calories %}
+                    <div class="fact">
+                        <div class="fact-value">{{ recipe.calories }}</div>
+                        <div class="fact-label">Calories</div>
+                    </div>
+                    {% endif %}
+                    {% if recipe.protein %}
+                    <div class="fact">
+                        <div class="fact-value">{{ recipe.protein }}</div>
+                        <div class="fact-label">Protein</div>
+                    </div>
+                    {% endif %}
+                    {% if recipe.fat %}
+                    <div class="fact">
+                        <div class="fact-value">{{ recipe.fat }}</div>
+                        <div class="fact-label">Fat</div>
+                    </div>
+                    {% endif %}
+                    {% if recipe.carbs %}
+                    <div class="fact">
+                        <div class="fact-value">{{ recipe.carbs }}</div>
+                        <div class="fact-label">Carbs</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="recipe-body">
+                <div>
+                    <h2 class="section-title">Ingredients</h2>
+                    <ul class="ingredients-list">
+                        {% for ingredient in recipe.ingredients %}
+                            <li>{{ ingredient }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h2 class="section-title">Instructions</h2>
+                    <ol class="steps-list">
+                        {% for step in recipe.steps %}
+                            <li><span class="step-number">{{ loop.index }}.</span>{{ step }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timestamp-info">
+            {% if recipe.created_at %}
+            <span>📅 Created: {{ recipe.created_at[:10] if recipe.created_at else 'Unknown' }}</span>
+            {% endif %}
+            {% if recipe.updated_at %}
+            <span>🔄 Updated: {{ recipe.updated_at[:10] if recipe.updated_at else 'Unknown' }}</span>
+            {% endif %}
+        </div>
+
+        <p class="recipe-timestamps">
+            <em>Created: <span id="createdAt"></span> | Last Updated: <span id="updatedAt"></span></em>
+        </p>
+
+        <!-- Edit Mode -->
+        <div id="editMode" class="edit-mode">
+            <img src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="recipe-image">
+            <div class="recipe-header">
+                <input type="text" id="editTitle" value="{{ recipe.title }}" placeholder="Recipe Title">
+                <input type="text" id="editDescription" value="{{ recipe.description }}" placeholder="Recipe Description">
+                <input type="text" id="editImageUrl" value="{{ recipe.image_url }}" placeholder="Image URL">
+                
+                <div class="nutrition-inputs">
+                    <div class="nutrition-input">
+                        <label for="editServings">Servings</label>
+                        <input type="text" id="editServings" value="{{ recipe.servings or '' }}" placeholder="e.g., 4">
+                    </div>
+                    <div class="nutrition-input">
+                        <label for="editCalories">Calories</label>
+                        <input type="text" id="editCalories" value="{{ recipe.calories or '' }}" placeholder="e.g., 550">
+                    </div>
+                    <div class="nutrition-input">
+                        <label for="editProtein">Protein</label>
+                        <input type="text" id="editProtein" value="{{ recipe.protein or '' }}" placeholder="e.g., 30g">
+                    </div>
+                    <div class="nutrition-input">
+                        <label for="editFat">Fat</label>
+                        <input type="text" id="editFat" value="{{ recipe.fat or '' }}" placeholder="e.g., 20g">
+                    </div>
+                    <div class="nutrition-input">
+                        <label for="editCarbs">Carbs</label>
+                        <input type="text" id="editCarbs" value="{{ recipe.carbs or '' }}" placeholder="e.g., 50g">
+                    </div>
+                </div>
+            </div>
+            <div class="recipe-body">
+                <div>
+                    <h2 class="section-title">Ingredients</h2>
+                    <textarea id="editIngredients" placeholder="Enter ingredients, one per line...">{{ recipe.ingredients | join('\n') }}</textarea>
+                </div>
+                <div>
+                    <h2 class="section-title">Instructions</h2>
+                    <textarea id="editSteps" placeholder="Enter instructions, one per line...">{{ recipe.steps | join('\n') }}</textarea>
+                </div>
+            </div>
+            <div class="recipe-body" style="grid-template-columns: 1fr;">
+                <div>
+                    <h2 class="section-title">📄 Raw Extracted Text</h2>
+                    <textarea id="editRawText" placeholder="Raw text from Instagram post...">{{ recipe.raw_text or '' }}</textarea>
+                </div>
+            </div>
+            
+            <!-- Tag Section for Edit Mode -->
+            <div id="tagSection" class="form-section">
+                <label for="tagInput">Tags</label>
+                <div class="tags-container" id="tagsContainer">
+                    <!-- Tags will be dynamically inserted here -->
+                </div>
+                <div class="tag-input-wrapper">
+                    <input type="text" id="tagInput" list="tagSuggestions" placeholder="Add a tag...">
+                    <datalist id="tagSuggestions"></datalist>
+                    <button id="addTagBtn" class="btn btn-sm btn-secondary">Add Tag</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timestamp-info" id="editTimestampInfo" style="display: none;">
+            {% if recipe.created_at %}
+            <span>📅 Created: {{ recipe.created_at[:10] if recipe.created_at else 'Unknown' }}</span>
+            {% endif %}
+            {% if recipe.updated_at %}
+            <span>🔄 Updated: {{ recipe.updated_at[:10] if recipe.updated_at else 'Unknown' }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const messageDiv = document.getElementById('message');
+            const recipeId = {{ recipe.id }};
+            let currentTags = [];
+            let allTags = [];
+
+            // --- DOM Elements ---
+            const viewMode = document.getElementById('viewMode');
+            const editMode = document.getElementById('editMode');
+            const tagSection = document.getElementById('tagSection');
+
+            function setEditMode(isEditing) {
+                viewMode.style.display = isEditing ? 'none' : 'block';
+                editMode.style.display = isEditing ? 'block' : 'none';
+                tagSection.style.display = isEditing ? 'block' : 'none';
+                
+                // Show/hide the action buttons
+                editBtn.style.display = isEditing ? 'none' : 'inline-block';
+                saveBtn.style.display = isEditing ? 'inline-block' : 'none';
+                cancelBtn.style.display = isEditing ? 'inline-block' : 'none';
+            }
+
+            async function saveRecipe() {
+                const recipeData = getFieldValues();
+
+                if (!recipeData.title) {
+                    showMessage('Recipe title is required.', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/update_recipe/${recipeId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ recipe: recipeData })
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Using reload is a simple way to see changes without complex state management
+                        window.location.reload();
+                    } else {
+                        showMessage(result.error || 'Failed to update recipe.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to update recipe:', error);
+                    showMessage('An error occurred while saving the recipe.', 'error');
+                }
+            }
+
+            async function fetchTagsForAutocomplete() {
+                try {
+                    const response = await fetch('/tags');
+                    const data = await response.json();
+                    allTags = data.tags;
+                    const datalist = document.getElementById('tagSuggestions');
+                    datalist.innerHTML = '';
+                    allTags.forEach(tag => {
+                        const option = document.createElement('option');
+                        option.value = tag;
+                        datalist.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch tags:', error);
+                }
+            }
+
+            function renderTags() {
+                const tagsContainer = document.getElementById('tagsContainer');
+                tagsContainer.innerHTML = '';
+                currentTags.forEach(tag => {
+                    const tagEl = document.createElement('div');
+                    tagEl.className = 'tag-item';
+                    tagEl.textContent = tag;
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-tag-btn';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.onclick = () => removeTag(tag);
+                    tagEl.appendChild(removeBtn);
+                    tagsContainer.appendChild(tagEl);
+                });
+            }
+
+            function addTag() {
+                const tagInput = document.getElementById('tagInput');
+                const tag = tagInput.value.trim().toLowerCase();
+                if (tag && !currentTags.includes(tag)) {
+                    currentTags.push(tag);
+                    renderTags();
+                }
+                tagInput.value = '';
+            }
+
+            function removeTag(tagToRemove) {
+                currentTags = currentTags.filter(tag => tag !== tagToRemove);
+                renderTags();
+            }
+
+            function getFieldValues() {
+                return {
+                    title: document.getElementById('editTitle').value,
+                    description: document.getElementById('editDescription').value,
+                    image_url: document.getElementById('editImageUrl').value,
+                    ingredients: document.getElementById('editIngredients').value.split('\n').filter(line => line.trim() !== ''),
+                    steps: document.getElementById('editSteps').value.split('\n').filter(line => line.trim() !== ''),
+                    servings: document.getElementById('editServings').value,
+                    calories: document.getElementById('editCalories').value,
+                    protein: document.getElementById('editProtein').value,
+                    fat: document.getElementById('editFat').value,
+                    carbs: document.getElementById('editCarbs').value,
+                    raw_text: document.getElementById('editRawText').value,
+                    tags: currentTags
+                };
+            }
+
+            function showMessage(text, type) {
+                messageDiv.textContent = text;
+                messageDiv.className = `message ${type}`;
+                messageDiv.style.display = 'block';
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+
+            // --- Event Listeners ---
+            editBtn.addEventListener('click', () => setEditMode(true));
+            cancelBtn.addEventListener('click', () => setEditMode(false));
+            saveBtn.addEventListener('click', saveRecipe);
+            document.getElementById('addTagBtn').addEventListener('click', addTag);
+            document.getElementById('tagInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag();
+                }
+            });
+
+            // --- Initial Page Setup ---
+            setEditMode(false);
+            fetchTagsForAutocomplete();
+            currentTags = [];
+            renderTags();
+        });
+    </script>
+</body>
+</html>
