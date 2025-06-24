@@ -24,7 +24,10 @@ class InstagramRecipeExtractor:
         self.driver = None
         
     def setup_driver(self):
-        """Set up Chrome driver with persistent profile."""
+        """
+        Set up Chrome driver with persistent profile for Instagram extraction.
+        DO NOT disable images or JavaScript here—Instagram requires them.
+        """
         print("🚀 Setting up Chrome driver...")
         print(f"ℹ️  Using dedicated Chrome profile at: {self.chrome_profile_path}")
         
@@ -35,7 +38,7 @@ class InstagramRecipeExtractor:
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
-        
+        # DO NOT add --disable-images or JS-blocking flags here!
         print("▶️  Initializing Chrome driver...")
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -45,18 +48,60 @@ class InstagramRecipeExtractor:
         """Check if already logged into Instagram."""
         print("🔐 Checking Instagram login status...")
         self.driver.get("https://www.instagram.com/")
-        time.sleep(3)
         
+        # Wait longer for the page to fully load and render
+        time.sleep(5)
+        
+        # Try multiple indicators of being logged in
+        login_indicators = [
+            '[data-testid="user-avatar"]',  # User avatar in header
+            '[data-testid="nav-profile"]',  # Profile navigation
+            'a[href*="/accounts/activity/"]',  # Activity link
+            'a[href*="/accounts/edit/"]',  # Edit profile link
+            '[aria-label*="Profile"]',  # Profile aria label
+            'img[alt*="profile picture"]',  # Profile picture
+            'a[href*="/' + self.driver.get_cookie('sessionid')['value'] + '/"]' if self.driver.get_cookie('sessionid') else None  # Session-based profile link
+        ]
+        
+        # Remove None values
+        login_indicators = [indicator for indicator in login_indicators if indicator]
+        
+        for indicator in login_indicators:
+            try:
+                # Wait a bit for each element
+                WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, indicator))
+                )
+                print("✅ Instagram session is active.")
+                return True
+            except TimeoutException:
+                continue
+        
+        # Additional check: look for login form (if we see it, we're not logged in)
         try:
-            # Look for elements that indicate we're logged in
-            self.driver.find_element(By.CSS_SELECTOR, '[data-testid="user-avatar"]')
-            print("✅ Instagram session is active.")
-            return True
-        except NoSuchElementException:
-            print("❌ Not logged into Instagram. Please log in manually first.")
-            return False
+            login_form_indicators = [
+                'input[name="username"]',
+                'input[name="password"]',
+                '[data-testid="login-button"]',
+                'button[type="submit"]'
+            ]
+            
+            for indicator in login_form_indicators:
+                try:
+                    self.driver.find_element(By.CSS_SELECTOR, indicator)
+                    print("❌ Not logged into Instagram. Please log in manually first.")
+                    return False
+                except NoSuchElementException:
+                    continue
+        except Exception:
+            pass
+        
+        # If we can't find login indicators but also can't find login form, 
+        # let's be more lenient and assume we might be logged in
+        print("⚠️  Could not definitively determine login status. Proceeding anyway...")
+        return True
     
-    def extract_recipe_data(self, url):
+    def extract_recipe_data(self, url, manual_login=False):
         """Extract recipe data from Instagram post."""
         print(f"🌐 Navigating to recipe URL: {url}")
         self.driver.get(url)
@@ -233,17 +278,41 @@ class InstagramRecipeExtractor:
                 if instruction and len(instruction) > 10:
                     recipe_data['steps'].append(instruction)
 
-    def run(self, url):
+    def run(self, url, manual_login=False):
         """Main method to extract recipe from Instagram URL."""
         try:
             self.setup_driver()
             
-            if not self.check_instagram_login():
-                raise Exception("Instagram login required")
-            
-            recipe_data = self.extract_recipe_data(url)
-            return recipe_data
-            
+            if manual_login:
+                print("🔧 Manual Login Mode")
+                print("=" * 50)
+                print("Chrome will open with Instagram. Please:")
+                print("1. Log in to Instagram in the opened browser")
+                print("2. Navigate to the recipe post if needed")
+                print("3. Press Enter in this terminal when ready to continue")
+                print("=" * 50)
+                
+                # Navigate to Instagram
+                self.driver.get("https://www.instagram.com/")
+                time.sleep(2)
+                
+                # Wait for user to log in manually
+                input("Press Enter after you've logged in to Instagram...")
+                print("✅ Continuing with extraction...")
+                
+                # Now navigate to the specific recipe URL
+                self.driver.get(url)
+                time.sleep(3)
+                
+                recipe_data = self.extract_recipe_data(url, manual_login=manual_login)
+                return recipe_data
+            else:
+                # Normal flow - check login status first
+                if not self.check_instagram_login():
+                    raise Exception("Instagram login required. Please log in manually first.")
+                
+                recipe_data = self.extract_recipe_data(url)
+                return recipe_data
         finally:
             if self.driver:
                 print("🚪 Closing browser.")
@@ -256,7 +325,10 @@ class NYTimesRecipeExtractor:
         self.driver = None
 
     def setup_driver(self):
-        """Set up Chrome driver with persistent profile."""
+        """
+        Set up Chrome driver with persistent profile for NYTimes extraction.
+        Here, we can disable images if needed for anti-bot, but NOT in Instagram extractor.
+        """
         print("🚀 Setting up Chrome driver for NYTimes...")
         print(f"ℹ️  Using dedicated Chrome profile at: {self.chrome_profile_path}")
         
@@ -269,7 +341,7 @@ class NYTimesRecipeExtractor:
         chrome_options.add_argument('--disable-features=VizDisplayCompositor')
         chrome_options.add_argument('--disable-extensions')
         chrome_options.add_argument('--disable-plugins')
-        chrome_options.add_argument('--disable-images')  # Load faster, less bot-like
+        chrome_options.add_argument('--disable-images')  # Only for NYTimes
         chrome_options.add_argument('--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
@@ -278,7 +350,6 @@ class NYTimesRecipeExtractor:
             "profile.default_content_settings.popups": 0,
             "profile.managed_default_content_settings.images": 2
         })
-        
         print("▶️  Initializing Chrome driver...")
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -699,18 +770,23 @@ class NYTimesRecipeExtractor:
 
 
 def get_recipe_extractor(url):
-    """Factory function to return the appropriate extractor based on URL."""
+    """Get the appropriate recipe extractor based on URL."""
     if 'instagram.com' in url:
-        print("📱 Using Instagram recipe extractor")
         return InstagramRecipeExtractor()
-    elif 'nytimes.com' in url or 'cooking.nytimes.com' in url:
-        print("📰 Using NYTimes Cooking recipe extractor")
+    elif 'cooking.nytimes.com' in url:
         return NYTimesRecipeExtractor()
     else:
-        raise ValueError(f"Unsupported URL domain: {url}")
+        raise Exception(f"Unsupported URL: {url}")
 
-
-def extract_recipe_data(url):
+def extract_recipe_data(url, manual_login=False):
     """Main function to extract recipe data from any supported URL."""
-    extractor = get_recipe_extractor(url)
-    return extractor.run(url) 
+    if 'instagram.com' in url:
+        print("📱 Using Instagram recipe extractor")
+        extractor = InstagramRecipeExtractor()
+        return extractor.run(url, manual_login=manual_login)
+    elif 'cooking.nytimes.com' in url:
+        print("📰 Using NYTimes Cooking recipe extractor")
+        extractor = NYTimesRecipeExtractor()
+        return extractor.run(url)
+    else:
+        raise Exception(f"Unsupported URL: {url}") 

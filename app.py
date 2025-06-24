@@ -33,6 +33,9 @@ class Recipe(db.Model):
     carbs = db.Column(db.String(50), nullable=True)
     # --- Raw Extracted Text ---
     raw_text = db.Column(db.Text, nullable=True)
+    # --- Recipe Usage Tracking ---
+    cook_count = db.Column(db.Integer, default=0)
+    last_cooked_date = db.Column(db.DateTime, nullable=True)
     # --- Timestamps ---
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
@@ -60,6 +63,8 @@ class Recipe(db.Model):
             'fat': self.fat,
             'carbs': self.carbs,
             'raw_text': self.raw_text,
+            'cook_count': self.cook_count,
+            'last_cooked_date': self.last_cooked_date.isoformat() if self.last_cooked_date else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'tags': [tag.name for tag in self.tags]
@@ -76,13 +81,15 @@ def extract():
         return jsonify({'error': 'URL is missing from the request'}), 400
     
     url = data['url']
+    manual_login = data.get('manual_login', False)  # Default to False
+    
     try:
         # Use the factory function to get the appropriate extractor
-        recipe_data = extract_recipe_data(url)
+        recipe_data = extract_recipe_data(url, manual_login=manual_login)
         return jsonify(recipe_data)
     except Exception as e:
         print(f"Error extracting recipe: {e}")
-        return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/save', methods=['POST'])
 def save_recipe():
@@ -151,6 +158,12 @@ def get_recipes():
         query = query.order_by(Recipe.title.asc())
     elif sort_order == 'title_desc':
         query = query.order_by(Recipe.title.desc())
+    elif sort_order == 'most_cooked':
+        query = query.order_by(Recipe.cook_count.desc())
+    elif sort_order == 'least_cooked':
+        query = query.order_by(Recipe.cook_count.asc())
+    elif sort_order == 'recently_cooked':
+        query = query.order_by(Recipe.last_cooked_date.desc().nullslast())
     else: # Default to 'newest'
         query = query.order_by(Recipe.created_at.desc())
         
@@ -169,6 +182,8 @@ def get_recipes():
         'fat': r.fat,
         'carbs': r.carbs,
         'raw_text': r.raw_text,
+        'cook_count': r.cook_count,
+        'last_cooked_date': r.last_cooked_date.strftime('%Y-%m-%d %H:%M:%S') if r.last_cooked_date else None,
         'created_at': r.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         'updated_at': r.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
         'tags': [tag.name for tag in r.tags]
@@ -197,24 +212,22 @@ def update_recipe(recipe_id):
         if not all(k in data for k in ['title', 'ingredients', 'steps']):
             return jsonify({'error': 'Missing recipe data.'}), 400
 
-        # Update recipe fields
+        # Update basic recipe fields
         recipe.title = data['title']
         recipe.image_url = data.get('image_url', '')
         recipe.description = data.get('description', '')
         recipe.ingredients = json.dumps(data['ingredients'])
         recipe.steps = json.dumps(data['steps'])
-        # Update nutrition fields
         recipe.servings = data.get('servings')
         recipe.calories = data.get('calories')
         recipe.protein = data.get('protein')
         recipe.fat = data.get('fat')
         recipe.carbs = data.get('carbs')
-        # Update raw text
         recipe.raw_text = data.get('raw_text', '')
         
-        # Handle Tags
+        # Clear existing tags and add new ones
+        recipe.tags.clear()
         if 'tags' in data:
-            recipe.tags.clear()
             for tag_name in data['tags']:
                 tag_name = tag_name.strip()
                 if tag_name:
@@ -223,14 +236,58 @@ def update_recipe(recipe_id):
                         tag = Tag(name=tag_name)
                         db.session.add(tag)
                     recipe.tags.append(tag)
-
+        
         db.session.commit()
-        
         return jsonify({'success': True, 'message': 'Recipe updated successfully!'})
-        
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': f'Failed to update recipe: {str(e)}'})
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/mark_cooked/<int:recipe_id>', methods=['POST'])
+def mark_cooked(recipe_id):
+    """Mark a recipe as cooked - increment cook count and update last cooked date."""
+    try:
+        recipe = Recipe.query.get_or_404(recipe_id)
+        
+        # Increment cook count
+        recipe.cook_count += 1
+        
+        # Update last cooked date
+        recipe.last_cooked_date = datetime.now(timezone.utc)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Recipe marked as cooked! (Cooked {recipe.cook_count} times)',
+            'cook_count': recipe.cook_count,
+            'last_cooked_date': recipe.last_cooked_date.isoformat()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/reset_cook_count/<int:recipe_id>', methods=['POST'])
+def reset_cook_count(recipe_id):
+    """Reset cook count and last cooked date for a recipe."""
+    try:
+        recipe = Recipe.query.get_or_404(recipe_id)
+        
+        # Reset cook count and last cooked date
+        recipe.cook_count = 0
+        recipe.last_cooked_date = None
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Cook count and history reset successfully!',
+            'cook_count': 0,
+            'last_cooked_date': None
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 # --- Tag Database Model ---
 class Tag(db.Model):

@@ -454,6 +454,9 @@
                     <option value="oldest">Oldest First</option>
                     <option value="title_asc">Title (A-Z)</option>
                     <option value="title_desc">Title (Z-A)</option>
+                    <option value="most_cooked">Most Cooked</option>
+                    <option value="least_cooked">Least Cooked</option>
+                    <option value="recently_cooked">Recently Cooked</option>
                 </select>
             </div>
             <div id="savedRecipesList" class="saved-recipes-grid"></div>
@@ -828,6 +831,11 @@
                             }
                             if (recipe.carbs) {
                                 nutritionBadges.push(`<span class="nutrition-badge">🌾 ${recipe.carbs}</span>`);
+                            }
+
+                            // Add cook count badge
+                            if (recipe.cook_count > 0) {
+                                nutritionBadges.push(`<span class="nutrition-badge" style="background: #28a745;">🍳 ${recipe.cook_count}x</span>`);
                             }
 
                             // If no nutrition data, show placeholder

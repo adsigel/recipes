@@ -15,9 +15,9 @@ This file tracks the to-do list for turning the recipe extractor proof of concep
 - [ ] **Automatic Nutrition Calculation:** Add a manual "Calculate Nutrition" button that estimates calories and macros from ingredient list using nutrition databases (USDA, etc.). This should be triggered manually rather than automatically to avoid errors.
 
 ## Recipe Tracking & Usage
-- [ ] **Cook Count Tracking:** Add fields to track how many times each recipe has been made, including a counter and the date it was last cooked.
+- [X] **Cook Count Tracking:** Add fields to track how many times each recipe has been made, including a counter and the date it was last cooked.
+- [X] **"Mark as Cooked" Button:** Add a simple button on recipe detail pages to increment the cook count and update the last cooked date.
 - [ ] **Recipe History:** Display a list of when each recipe was last made, sorted by most recent or most frequently cooked.
-- [ ] **"Mark as Cooked" Button:** Add a simple button on recipe detail pages to increment the cook count and update the last cooked date.
 - [ ] **Cooking Statistics:** Show cooking statistics like "Most Cooked Recipes", "Recently Made", and "Never Made" categories.
 
 ## User Experience (UX)
@@ -29,4 +29,26 @@ This file tracks the to-do list for turning the recipe extractor proof of concep
 - [ ] **Expanded Importer:** Add the ability to import recipes from other sources besides Instagram, such as popular cooking blogs or other recipe websites.
 
 ## Data & Machine Learning
-- [X] **Store Raw Extracted Text:** Save the original, raw text from the Instagram extractor in the database alongside the cleaned, user-edited version. This will create a dataset for future ML model training to improve automated parsing. 
+- [X] **Store Raw Extracted Text:** Save the original, raw text from the Instagram extractor in the database alongside the cleaned, user-edited version. This will create a dataset for future ML model training to improve automated parsing.
+
+# TODO: Transition to Cloud-Based Extraction (Fly.io)
+
+## Goal
+Move Selenium-based recipe extraction (Instagram, NYTimes) to a cloud service for mobile and remote access.
+
+## Steps
+- [ ] Dockerize the Flask app and all dependencies (Selenium, Chrome/Chromedriver, etc.)
+- [ ] Test the Docker image locally to ensure extraction works with persistent Chrome profile
+- [ ] Set up a Fly.io account and install the Fly CLI
+- [ ] Deploy the Dockerized app to Fly.io (use persistent volumes for Chrome profile if needed)
+- [ ] Configure environment variables/secrets for any credentials
+- [ ] Expose the Flask API endpoint securely (consider authentication or IP allowlist)
+- [ ] Test extraction from a remote/mobile device
+- [ ] Update the app frontend to point to the new cloud endpoint
+- [ ] Document the cloud setup and login flow for Instagram/NYTimes
+
+## Considerations
+- Chrome profile persistence for login sessions
+- Fly.io free tier resource limits
+- Security: restrict who can access the extractor API
+- Ongoing maintenance: updating Chrome/Chromedriver versions 

@@ -239,6 +239,90 @@
             padding: 8px 12px;
             font-size: 14px;
         }
+        .cook-tracking {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+        .cook-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        .cook-stat {
+            text-align: center;
+        }
+        .cook-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .cook-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .mark-cooked-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        .mark-cooked-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+        .mark-cooked-btn:active {
+            transform: translateY(0);
+        }
+        .cook-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: none;
+        }
+        .cook-success {
+            background: rgba(40, 167, 69, 0.2);
+            color: #d4edda;
+        }
+        .reset-cooked-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+            margin-left: 10px;
+        }
+        .reset-cooked-btn:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+        .reset-cooked-btn:active {
+            transform: translateY(0);
+        }
+        .reset-cooked-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
@@ -307,11 +391,34 @@
                     </ol>
                 </div>
             </div>
+            
+            <!-- Cook Tracking Section -->
+            <div class="cook-tracking">
+                <div class="cook-stats">
+                    <div class="cook-stat">
+                        <div class="cook-stat-value" id="cookCount">{{ recipe.cook_count or 0 }}</div>
+                        <div class="cook-stat-label">Times Cooked</div>
+                    </div>
+                    <div class="cook-stat">
+                        <div class="cook-stat-value" id="lastCookedDate">
+                            {% if recipe.last_cooked_date %}
+                                {{ recipe.last_cooked_date[:10] if recipe.last_cooked_date else 'Never' }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </div>
+                        <div class="cook-stat-label">Last Cooked</div>
+                    </div>
+                </div>
+                <button id="markCookedBtn" class="mark-cooked-btn">🍳 Mark as Cooked</button>
+                <button id="resetCookedBtn" class="reset-cooked-btn" style="display: none;">🔄 Reset Count</button>
+                <div id="cookMessage" class="cook-message cook-success"></div>
+            </div>
         </div>
         
         <div class="timestamp-info">
             {% if recipe.created_at %}
-            <span>📅 Created: {{ recipe.created_at[:10] if recipe.created_at else 'Unknown' }}</span>
+            <span> Created: {{ recipe.created_at[:10] if recipe.created_at else 'Unknown' }}</span>
             {% endif %}
             {% if recipe.updated_at %}
             <span>🔄 Updated: {{ recipe.updated_at[:10] if recipe.updated_at else 'Unknown' }}</span>
@@ -522,6 +629,100 @@
                 }, 3000);
             }
 
+            async function markAsCooked() {
+                const markCookedBtn = document.getElementById('markCookedBtn');
+                const cookMessage = document.getElementById('cookMessage');
+                
+                // Disable button during request
+                markCookedBtn.disabled = true;
+                markCookedBtn.textContent = '🔄 Marking...';
+                
+                try {
+                    const response = await fetch(`/mark_cooked/${recipeId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Update the display
+                        document.getElementById('cookCount').textContent = result.cook_count;
+                        document.getElementById('lastCookedDate').textContent = result.last_cooked_date ? result.last_cooked_date.substring(0, 10) : 'Never';
+                        
+                        // Show success message
+                        cookMessage.textContent = result.message;
+                        cookMessage.style.display = 'block';
+                        setTimeout(() => {
+                            cookMessage.style.display = 'none';
+                        }, 3000);
+                        
+                        // Show reset button if cook count > 0
+                        updateResetButtonVisibility(result.cook_count > 0);
+                    } else {
+                        showMessage(result.error || 'Failed to mark recipe as cooked.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to mark recipe as cooked:', error);
+                    showMessage('An error occurred while marking the recipe as cooked.', 'error');
+                } finally {
+                    // Re-enable button
+                    markCookedBtn.disabled = false;
+                    markCookedBtn.textContent = '🍳 Mark as Cooked';
+                }
+            }
+
+            async function resetCookCount() {
+                const resetCookedBtn = document.getElementById('resetCookedBtn');
+                const cookMessage = document.getElementById('cookMessage');
+                
+                // Confirm with user
+                if (!confirm('Are you sure you want to reset the cook count and history for this recipe?')) {
+                    return;
+                }
+                
+                // Disable button during request
+                resetCookedBtn.disabled = true;
+                resetCookedBtn.textContent = '🔄 Resetting...';
+                
+                try {
+                    const response = await fetch(`/reset_cook_count/${recipeId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Update the display
+                        document.getElementById('cookCount').textContent = result.cook_count;
+                        document.getElementById('lastCookedDate').textContent = 'Never';
+                        
+                        // Show success message
+                        cookMessage.textContent = result.message;
+                        cookMessage.style.display = 'block';
+                        setTimeout(() => {
+                            cookMessage.style.display = 'none';
+                        }, 3000);
+                        
+                        // Hide reset button since count is now 0
+                        updateResetButtonVisibility(false);
+                    } else {
+                        showMessage(result.error || 'Failed to reset cook count.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Failed to reset cook count:', error);
+                    showMessage('An error occurred while resetting the cook count.', 'error');
+                } finally {
+                    // Re-enable button
+                    resetCookedBtn.disabled = false;
+                    resetCookedBtn.textContent = '🔄 Reset Count';
+                }
+            }
+
+            function updateResetButtonVisibility(show) {
+                const resetCookedBtn = document.getElementById('resetCookedBtn');
+                resetCookedBtn.style.display = show ? 'inline-block' : 'none';
+            }
+
             // --- Event Listeners ---
             editBtn.addEventListener('click', () => setEditMode(true));
             cancelBtn.addEventListener('click', () => setEditMode(false));
@@ -533,12 +734,18 @@
                     addTag();
                 }
             });
+            document.getElementById('markCookedBtn').addEventListener('click', markAsCooked);
+            document.getElementById('resetCookedBtn').addEventListener('click', resetCookCount);
 
             // --- Initial Page Setup ---
             setEditMode(false);
             fetchTagsForAutocomplete();
             currentTags = [];
             renderTags();
+            
+            // Initialize reset button visibility based on current cook count
+            const currentCookCount = parseInt(document.getElementById('cookCount').textContent) || 0;
+            updateResetButtonVisibility(currentCookCount > 0);
         });
     </script>
 </body>
