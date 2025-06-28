@@ -323,20 +323,233 @@
             transform: none;
             box-shadow: none;
         }
+        .sticky-mobile-header {
+            display: none;
+        }
+        @media (max-width: 700px) {
+            body { padding: 0; }
+            .container { margin: 0; border-radius: 0; box-shadow: none; }
+            .recipe-header, .recipe-body { padding: 0 0 0 0; }
+            .recipe-image { height: 220px; }
+            .sticky-mobile-header {
+                display: flex;
+                flex-direction: column;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background: white;
+                transition: box-shadow 0.2s, min-height 0.2s;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            }
+            .sticky-mobile-header.collapsed {
+                flex-direction: row;
+                align-items: center;
+                min-height: 56px;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+            }
+            .sticky-mobile-header .mobile-header-image {
+                width: 100%;
+                height: 160px;
+                object-fit: cover;
+                border-radius: 0;
+                transition: width 0.2s, height 0.2s;
+            }
+            .sticky-mobile-header.collapsed .mobile-header-image {
+                width: 48px;
+                height: 48px;
+                margin: 4px 10px 4px 8px;
+                border-radius: 8px;
+            }
+            .sticky-mobile-header .mobile-header-content {
+                padding: 16px;
+                text-align: left;
+            }
+            .sticky-mobile-header.collapsed .mobile-header-content {
+                padding: 0 8px;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+            .sticky-mobile-header .mobile-header-title {
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin-bottom: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .sticky-mobile-header.collapsed .mobile-header-title {
+                font-size: 1.1rem;
+                margin-bottom: 0;
+            }
+            .sticky-mobile-header .mobile-nutrition-bar {
+                display: flex;
+                gap: 10px;
+                margin-top: 8px;
+                flex-wrap: wrap;
+            }
+            .sticky-mobile-header.collapsed .mobile-nutrition-bar {
+                margin-top: 0;
+                gap: 6px;
+            }
+            .mobile-nutrition-badge {
+                background: #f0f0f0;
+                color: #333;
+                border-radius: 6px;
+                padding: 2px 8px;
+                font-size: 0.95em;
+                font-weight: 500;
+            }
+            /* Hide original header and body on mobile */
+            .recipe-header, .nutrition-facts, .recipe-body { display: none; }
+            /* Tabs */
+            .mobile-tabs {
+                display: flex;
+                border-bottom: 2px solid #eee;
+                background: #fafbfc;
+                position: sticky;
+                top: 160px;
+                z-index: 99;
+            }
+            .sticky-mobile-header.collapsed + .mobile-tabs {
+                top: 56px;
+            }
+            .mobile-tab {
+                flex: 1;
+                text-align: center;
+                padding: 14px 0;
+                font-size: 1.1rem;
+                font-weight: 600;
+                background: none;
+                border: none;
+                border-bottom: 3px solid transparent;
+                cursor: pointer;
+                transition: border-color 0.2s, background 0.2s;
+            }
+            .mobile-tab.active {
+                border-bottom: 3px solid #667eea;
+                background: #f6f8fc;
+                color: #4b2997;
+            }
+            .mobile-tab-panel {
+                padding: 20px 16px 32px 16px;
+            }
+            .mobile-section-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #f0f0f0;
+            }
+            .ingredients-list li, .steps-list li {
+                font-size: 1.05rem;
+                padding: 10px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            .steps-list li { display: flex; }
+            .step-number { font-weight: 600; margin-right: 10px; color: #667eea; }
+            .cook-tracking {
+                margin: 16px 0 0 0;
+                padding: 12px 8px;
+                border-radius: 10px;
+                font-size: 1rem;
+                background: #f8f9fa;
+                color: #333;
+                box-shadow: none;
+            }
+            .cook-stats {
+                gap: 16px;
+                margin-bottom: 8px;
+            }
+            .cook-stat-value {
+                font-size: 1.2rem;
+                margin-bottom: 2px;
+            }
+            .cook-stat-label {
+                font-size: 0.85rem;
+            }
+            .mark-cooked-btn, .reset-cooked-btn {
+                font-size: 1rem;
+                padding: 10px 18px;
+                border-radius: 18px;
+            }
+            .cook-message {
+                font-size: 0.95rem;
+                margin-top: 8px;
+                padding: 6px;
+            }
+            /* Kitchen Mode button */
+            .kitchen-mode-btn {
+                margin-top: 10px;
+                margin-bottom: 0;
+                padding: 10px 18px;
+                border-radius: 18px;
+                font-size: 1rem;
+                font-weight: 600;
+                background: #ffb347;
+                color: #333;
+                border: none;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .kitchen-mode-btn.active {
+                background: #ff6b6b;
+                color: white;
+            }
+        }
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">← Back to All Recipes</a>
-    <button id="editBtn" class="edit-btn">✏️ Edit Recipe</button>
-    <button id="saveBtn" class="save-btn" style="display: none;">💾 Save Changes</button>
+    <a href="/" class="back-link">← All Recipes</a>
+    <button id="editBtn" class="edit-btn">✏️ Edit</button>
+    <button id="saveBtn" class="save-btn" style="display: none;">💾 Save</button>
     <button id="cancelBtn" class="cancel-btn" style="display: none;">❌ Cancel</button>
     
     <div id="message" class="message"></div>
-    
+
+    <!-- Sticky Mobile Header (only visible on mobile) -->
+    <div class="sticky-mobile-header" id="stickyMobileHeader">
+        <img src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="mobile-header-image" id="mobileHeaderImage">
+        <div class="mobile-header-content">
+            <div class="mobile-header-title">{{ recipe.title }}</div>
+            <div class="mobile-nutrition-bar">
+                {% if recipe.servings %}<span class="mobile-nutrition-badge">🍽️ {{ recipe.servings }}</span>{% endif %}
+                {% if recipe.calories %}<span class="mobile-nutrition-badge">🔥 {{ recipe.calories }}</span>{% endif %}
+                {% if recipe.protein %}<span class="mobile-nutrition-badge">💪 {{ recipe.protein }}</span>{% endif %}
+                {% if recipe.fat %}<span class="mobile-nutrition-badge">🥑 {{ recipe.fat }}</span>{% endif %}
+                {% if recipe.carbs %}<span class="mobile-nutrition-badge">🌾 {{ recipe.carbs }}</span>{% endif %}
+                <span class="mobile-nutrition-badge" id="mobileCookCount">🍳 {{ recipe.cook_count or 0 }}x</span>
+            </div>
+            <button class="kitchen-mode-btn" id="kitchenModeBtn" type="button">Enable Kitchen Mode</button>
+        </div>
+    </div>
+    <!-- Mobile Tabs -->
+    <div class="mobile-tabs" id="mobileTabs" style="display:none;">
+        <button class="mobile-tab active" id="tabIngredients">Ingredients</button>
+        <button class="mobile-tab" id="tabInstructions">Instructions</button>
+    </div>
+    <div class="mobile-tab-panel" id="panelIngredients" style="display:none;">
+        <div class="mobile-section-title">Ingredients</div>
+        <ul class="ingredients-list">
+            {% for ingredient in recipe.ingredients %}
+                <li>{{ ingredient }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="mobile-tab-panel" id="panelInstructions" style="display:none;">
+        <div class="mobile-section-title">Instructions</div>
+        <ol class="steps-list">
+            {% for step in recipe.steps %}
+                <li><span class="step-number">{{ loop.index }}.</span>{{ step }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+
     <div class="container">
         <!-- View Mode -->
         <div id="viewMode" class="view-mode">
-            <img src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="recipe-image">
+            <img id="recipeImage" src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="recipe-image">
             <div class="recipe-header">
                 <h1>{{ recipe.title }}</h1>
                 <p>{{ recipe.description }}</p>
@@ -431,7 +644,7 @@
 
         <!-- Edit Mode -->
         <div id="editMode" class="edit-mode">
-            <img src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="recipe-image">
+            <img id="recipeImage" src="{{ recipe.image_url or 'https://placehold.co/800x400?text=No+Image' }}" alt="Recipe Image" class="recipe-image">
             <div class="recipe-header">
                 <input type="text" id="editTitle" value="{{ recipe.title }}" placeholder="Recipe Title">
                 <input type="text" id="editDescription" value="{{ recipe.description }}" placeholder="Recipe Description">
@@ -502,6 +715,20 @@
     </div>
 
     <script>
+        // --- Image Proxy Function (Global) ---
+        function getProxiedImageUrl(imageUrl) {
+            if (!imageUrl) return 'https://placehold.co/800x400?text=No+Image';
+            
+            // Check if it's an Instagram CDN URL that needs special handling
+            if (imageUrl.includes('scontent') && imageUrl.includes('cdninstagram.com')) {
+                // For Instagram images, we'll use a placeholder since they often don't work on mobile
+                return 'https://placehold.co/800x400?text=Instagram+Image';
+            }
+            
+            // Return original URL for other images (NYTimes, etc.)
+            return imageUrl;
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const editBtn = document.getElementById('editBtn');
             const saveBtn = document.getElementById('saveBtn');
@@ -746,6 +973,97 @@
             // Initialize reset button visibility based on current cook count
             const currentCookCount = parseInt(document.getElementById('cookCount').textContent) || 0;
             updateResetButtonVisibility(currentCookCount > 0);
+            
+            // Set up image proxy for Instagram images
+            const recipeImage = document.getElementById('recipeImage');
+            if (recipeImage) {
+                const originalSrc = recipeImage.src;
+                recipeImage.src = getProxiedImageUrl(originalSrc);
+            }
+        });
+
+        // Mobile sticky header collapse and tabbed interface
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth > 700) return;
+            // Show mobile tabs and panels
+            document.getElementById('mobileTabs').style.display = '';
+            document.getElementById('panelIngredients').style.display = '';
+            document.getElementById('panelInstructions').style.display = 'none';
+
+            // Tab switching
+            const tabIngredients = document.getElementById('tabIngredients');
+            const tabInstructions = document.getElementById('tabInstructions');
+            const panelIngredients = document.getElementById('panelIngredients');
+            const panelInstructions = document.getElementById('panelInstructions');
+            tabIngredients.addEventListener('click', function() {
+                tabIngredients.classList.add('active');
+                tabInstructions.classList.remove('active');
+                panelIngredients.style.display = '';
+                panelInstructions.style.display = 'none';
+            });
+            tabInstructions.addEventListener('click', function() {
+                tabInstructions.classList.add('active');
+                tabIngredients.classList.remove('active');
+                panelInstructions.style.display = '';
+                panelIngredients.style.display = 'none';
+            });
+
+            // Sticky header collapse on scroll
+            const stickyHeader = document.getElementById('stickyMobileHeader');
+            let lastScrollY = window.scrollY;
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 80) {
+                    stickyHeader.classList.add('collapsed');
+                } else {
+                    stickyHeader.classList.remove('collapsed');
+                }
+                lastScrollY = window.scrollY;
+            });
+
+            // Kitchen Mode (Wake Lock API)
+            let wakeLock = null;
+            const kitchenModeBtn = document.getElementById('kitchenModeBtn');
+            let kitchenModeActive = false;
+            async function enableKitchenMode() {
+                if ('wakeLock' in navigator) {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        kitchenModeActive = true;
+                        kitchenModeBtn.textContent = 'Disable Kitchen Mode';
+                        kitchenModeBtn.classList.add('active');
+                    } catch (err) {
+                        alert('Could not enable Kitchen Mode: ' + err.message);
+                    }
+                } else {
+                    alert('Kitchen Mode is not supported on this device/browser.');
+                }
+            }
+            async function disableKitchenMode() {
+                if (wakeLock) {
+                    try {
+                        await wakeLock.release();
+                    } catch (err) {}
+                    wakeLock = null;
+                }
+                kitchenModeActive = false;
+                kitchenModeBtn.textContent = 'Enable Kitchen Mode';
+                kitchenModeBtn.classList.remove('active');
+            }
+            kitchenModeBtn.addEventListener('click', function() {
+                if (kitchenModeActive) {
+                    disableKitchenMode();
+                } else {
+                    enableKitchenMode();
+                }
+            });
+            // Release wake lock on navigation away
+            window.addEventListener('beforeunload', disableKitchenMode);
+            // Also release on visibility change (e.g. user switches tabs)
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'hidden') {
+                    disableKitchenMode();
+                }
+            });
         });
     </script>
 </body>

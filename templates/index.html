@@ -65,6 +65,57 @@
             align-items: center;
         }
 
+        /* Tag Filter Bar Styles */
+        #tagFilterBar {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            margin-bottom: 18px;
+            align-items: center;
+            padding-bottom: 4px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #tagFilterBar button {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            background: white;
+            color: #495057;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        #tagFilterBar button:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        #tagFilterBar button.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        #tagFilterBar button.tag-filter-btn {
+            background: #f8f9fa;
+        }
+
+        #tagFilterBar button.tag-filter-btn:hover {
+            background: #e9ecef;
+        }
+
+        #tagFilterBar button.tag-filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
         #searchInput {
             flex: 1;
             padding: 12px;
@@ -258,25 +309,70 @@
         /* Recipe Form Modal */
         .recipe-modal {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 800px;
-            max-width: 95vw;
-            max-height: 90vh;
-            overflow-y: auto;
             z-index: 999;
             transition: transform 0.2s ease, opacity 0.2s ease;
             opacity: 0;
             pointer-events: none;
         }
         .recipe-modal.show {
-            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
             pointer-events: auto;
+        }
+        @media (min-width: 601px) {
+            .recipe-modal {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.9);
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                width: 800px;
+                max-width: 95vw;
+                max-height: 90vh;
+            }
+        }
+        @media (max-width: 600px) {
+            .recipe-modal {
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100vw;
+                height: 100vh;
+                max-width: 100vw;
+                max-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+                display: flex;
+                flex-direction: column;
+                margin: 0;
+            }
+            .modal-header {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                padding: 18px 16px;
+                border-radius: 0;
+            }
+            .modal-body {
+                flex: 1 1 auto;
+                overflow-y: auto;
+                padding: 16px;
+                min-height: 0;
+            }
+            .modal-tabs {
+                margin-bottom: 10px;
+            }
+            .form-group {
+                margin-bottom: 16px;
+            }
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .btn:last-child {
+                margin-bottom: 0;
+            }
         }
 
         .modal-header {
@@ -284,7 +380,9 @@
             color: white;
             padding: 25px;
             border-radius: 20px 20px 0 0;
-            position: relative;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         .modal-header h2 {
@@ -308,6 +406,9 @@
 
         .modal-body {
             padding: 30px;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            min-height: 0;
         }
 
         /* Form Styles */
@@ -349,14 +450,18 @@
             gap: 15px;
         }
 
+        /* Button Styles */
         .btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .btn-primary {
@@ -365,18 +470,28 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
         }
 
         .btn-secondary:hover {
-            transform: translateY(-2px);
+            background: #e9ecef;
+            border-color: #ced4da;
         }
 
+        .btn-secondary.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        /* Loading and Message Styles */
         .loading {
             display: none;
             text-align: center;
@@ -399,19 +514,20 @@
         }
 
         .message {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
             display: none;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
         }
 
-        .success {
+        .message.success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
 
-        .error {
+        .message.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
@@ -436,6 +552,100 @@
                 right: 20px;
             }
         }
+
+        /* Lock background scroll when modal is open */
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* Modal Tabs */
+        .modal-tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .modal-tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .modal-tab.active {
+            border-bottom: 3px solid #667eea;
+            background: #f6f8fc;
+            color: #4b2997;
+        }
+
+        #recipesContainer.compact-view .recipe-card {
+            flex-direction: row;
+            align-items: center;
+            min-height: 60px;
+            padding: 10px 14px;
+            gap: 14px;
+        }
+        #recipesContainer.compact-view .saved-recipe-image {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+        #recipesContainer.compact-view .saved-recipe-content {
+            padding: 0;
+        }
+        #recipesContainer.compact-view .recipe-card h4 {
+            font-size: 1.05rem;
+            margin-bottom: 2px;
+        }
+        #recipesContainer.compact-view .recipe-card p,
+        #recipesContainer.compact-view .recipe-tags {
+            display: none;
+        }
+        #recipesContainer.compact-view .recipe-nutrition {
+            margin-top: 0;
+        }
+        #recipesContainer.compact-view .nutrition-badge {
+            font-size: 0.95em;
+            padding: 2px 7px;
+        }
+        @media (max-width: 600px) {
+            #recipesContainer.compact-view .recipe-card {
+                min-height: 48px;
+                padding: 7px 7px;
+                gap: 8px;
+            }
+            #recipesContainer.compact-view .saved-recipe-image {
+                width: 36px;
+                height: 36px;
+                margin-right: 6px;
+            }
+            #recipesContainer.compact-view .recipe-card h4 {
+                font-size: 0.98rem;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-open {
+            overflow: hidden;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -447,19 +657,25 @@
 
         <div class="saved-recipes">
             <h2>📚 Your Recipes</h2>
+            <div id="tagFilterBar"></div>
             <div class="filter-controls">
-                <input type="search" id="searchInput" placeholder="Search by title or ingredients...">
+                <input type="text" id="searchInput" placeholder="Search recipes...">
                 <select id="sortSelect">
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
-                    <option value="title_asc">Title (A-Z)</option>
-                    <option value="title_desc">Title (Z-A)</option>
+                    <option value="title_asc">Title A-Z</option>
+                    <option value="title_desc">Title Z-A</option>
                     <option value="most_cooked">Most Cooked</option>
                     <option value="least_cooked">Least Cooked</option>
                     <option value="recently_cooked">Recently Cooked</option>
                 </select>
             </div>
-            <div id="savedRecipesList" class="saved-recipes-grid"></div>
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 18px;">
+                <button id="toggleViewBtn" class="btn btn-secondary" style="min-width: 120px;">Compact View</button>
+            </div>
+            <div id="recipesContainer">
+                <div class="saved-recipes-grid" id="savedRecipesList"></div>
+            </div>
         </div>
     </div>
 
@@ -499,42 +715,45 @@
 
             <!-- Manual Entry Form -->
             <div id="manualForm">
-                <div id="rawTextSection" class="form-group" style="display: none;">
-                    <label for="rawTextOutput">Extracted Raw Text (copy from here to fields below)</label>
-                    <textarea id="rawTextOutput" readonly style="min-height: 150px; background-color: #f8f9fa; font-family: 'Menlo', 'Courier New', monospace; font-size: 13px;"></textarea>
+                <div class="modal-tabs">
+                    <button class="modal-tab active" id="tab-ingredients" type="button">Ingredients</button>
+                    <button class="modal-tab" id="tab-instructions" type="button">Instructions</button>
+                    <button class="modal-tab" id="tab-nutrition" type="button">Nutrition Info</button>
+                </div>
+
+                <div id="tabPanel-ingredients" class="tab-panel" style="display: block;">
+                    <div class="form-group">
+                        <label for="ingredients">Ingredients *</label>
+                        <textarea id="ingredients" placeholder="Enter ingredients, one per line..."></textarea>
+                    </div>
+                </div>
+                <div id="tabPanel-instructions" class="tab-panel" style="display: none;">
+                    <div class="form-group">
+                        <label for="instructions">Instructions *</label>
+                        <textarea id="instructions" placeholder="Enter instructions, one per line..."></textarea>
+                    </div>
+                </div>
+                <div id="tabPanel-nutrition" class="tab-panel" style="display: none;">
+                    <div class="form-group">
+                        <label>Nutrition Information (optional)</label>
+                        <div class="nutrition-grid">
+                            <input type="text" id="servings" placeholder="Servings">
+                            <input type="text" id="calories" placeholder="Calories">
+                            <input type="text" id="protein" placeholder="Protein">
+                            <input type="text" id="fat" placeholder="Fat">
+                            <input type="text" id="carbs" placeholder="Carbs">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="recipeTitle">Recipe Title *</label>
                     <input type="text" id="recipeTitle" placeholder="Enter recipe title..." required>
                 </div>
-
                 <div class="form-group">
                     <label for="recipeImageUrl">Image URL (optional)</label>
                     <input type="url" id="recipeImageUrl" placeholder="https://example.com/image.jpg">
                 </div>
-
-                <div class="form-group">
-                    <label>Nutrition Information (optional)</label>
-                    <div class="nutrition-grid">
-                        <input type="text" id="servings" placeholder="Servings">
-                        <input type="text" id="calories" placeholder="Calories">
-                        <input type="text" id="protein" placeholder="Protein">
-                        <input type="text" id="fat" placeholder="Fat">
-                        <input type="text" id="carbs" placeholder="Carbs">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="ingredients">Ingredients *</label>
-                    <textarea id="ingredients" placeholder="Enter ingredients, one per line..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="instructions">Instructions *</label>
-                    <textarea id="instructions" placeholder="Enter instructions, one per line..."></textarea>
-                </div>
-
                 <div style="text-align: right;">
                     <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
                     <button class="btn btn-primary" id="saveBtn">Save Recipe</button>
@@ -638,11 +857,32 @@
             });
             sortSelect.addEventListener('change', loadSavedRecipes);
 
+            // Modal Tabs
+            const tabButtons = [
+                document.getElementById('tab-ingredients'),
+                document.getElementById('tab-instructions'),
+                document.getElementById('tab-nutrition')
+            ];
+            const tabPanels = [
+                document.getElementById('tabPanel-ingredients'),
+                document.getElementById('tabPanel-instructions'),
+                document.getElementById('tabPanel-nutrition')
+            ];
+            tabButtons.forEach((btn, idx) => {
+                btn.addEventListener('click', () => {
+                    tabButtons.forEach((b, i) => {
+                        b.classList.toggle('active', i === idx);
+                        tabPanels[i].style.display = i === idx ? 'block' : 'none';
+                    });
+                });
+            });
+
+            // Lock background scroll when modal is open
             function showModal(title, type) {
                 modalTitle.textContent = title;
                 modalOverlay.classList.add('show');
                 recipeModal.classList.add('show');
-                
+                document.body.classList.add('modal-open');
                 if (type === 'manual') {
                     manualForm.style.display = 'block';
                     extractForm.style.display = 'none';
@@ -651,20 +891,15 @@
                     manualForm.style.display = 'none';
                     extractForm.style.display = 'block';
                 }
-                
                 hideMessage();
             }
-
             function closeModal() {
                 modalOverlay.classList.remove('show');
                 recipeModal.classList.remove('show');
                 fabMenu.classList.remove('open');
-                
-                // Clear forms
+                document.body.classList.remove('modal-open');
                 clearForms();
-                // Clear stored data
                 window.currentRecipeRawText = '';
-                // Hide raw text section
                 document.getElementById('rawTextSection').style.display = 'none';
             }
 
@@ -791,25 +1026,66 @@
                 }
             }
 
+            // --- Tag Filter Bar ---
+            const tagFilterBar = document.getElementById('tagFilterBar');
+            let allTags = [];
+            let activeTag = '';
+            function renderTagFilterBar() {
+                console.log('Rendering tag filter bar with tags:', allTags);
+                tagFilterBar.innerHTML = '';
+                // 'All' button
+                const allBtn = document.createElement('button');
+                allBtn.textContent = 'All';
+                allBtn.className = 'btn btn-secondary' + (activeTag ? '' : ' active');
+                allBtn.onclick = () => {
+                    activeTag = '';
+                    updateTagFilter();
+                };
+                tagFilterBar.appendChild(allBtn);
+                // Tag buttons
+                allTags.forEach(tag => {
+                    const tagBtn = document.createElement('button');
+                    tagBtn.textContent = '#' + tag;
+                    tagBtn.className = 'btn btn-secondary tag-filter-btn' + (activeTag === tag ? ' active' : '');
+                    tagBtn.onclick = () => {
+                        activeTag = tag;
+                        updateTagFilter();
+                    };
+                    tagFilterBar.appendChild(tagBtn);
+                });
+                console.log('Tag filter bar rendered with', tagFilterBar.children.length, 'buttons');
+            }
+            function updateTagFilter() {
+                console.log('Updating tag filter, active tag:', activeTag);
+                renderTagFilterBar();
+                loadSavedRecipes();
+            }
+            // Fetch all tags on page load, then load recipes
+            fetch('/tags').then(r => r.json()).then(data => {
+                allTags = data.tags || [];
+                console.log('Fetched tags:', allTags);
+                renderTagFilterBar();
+                loadSavedRecipes(); // Only call here after tags are ready
+            }).catch(error => {
+                console.error('Error fetching tags:', error);
+            });
+            // Update loadSavedRecipes to use activeTag
             async function loadSavedRecipes() {
                 const searchQuery = searchInput.value;
                 const sortOrder = sortSelect.value;
-                const params = new URLSearchParams(window.location.search);
-                const tagFilter = params.get('tag') || '';
-                
                 let url = `/recipes?search=${encodeURIComponent(searchQuery)}&sort=${sortOrder}`;
-                if (tagFilter) {
-                    url += `&tag=${encodeURIComponent(tagFilter)}`;
+                if (activeTag) {
+                    url += `&tag=${encodeURIComponent(activeTag)}`;
                 }
-
+                console.log('Loading recipes with URL:', url);
                 try {
                     const response = await fetch(url);
                     const data = await response.json();
-
+                    console.log('Received recipes data:', data);
                     const savedRecipesList = document.getElementById('savedRecipesList');
                     savedRecipesList.innerHTML = '';
-
                     if (data.recipes && data.recipes.length > 0) {
+                        console.log('Rendering', data.recipes.length, 'recipes');
                         data.recipes.forEach(recipe => {
                             const recipeLink = document.createElement('a');
                             recipeLink.href = `/recipe/${recipe.id}`;
@@ -853,7 +1129,7 @@
 
                             recipeLink.innerHTML = `
                                 <div class="recipe-card">
-                                    <img src="${recipe.image_url || 'https://placehold.co/400x300?text=No+Image'}" alt="Recipe Image" class="saved-recipe-image">
+                                    <img src="${recipe.image_url || 'https://placehold.co/400x300?text=No+Image'}" alt="Recipe Image" class="saved-recipe-image" onerror="this.onerror=null;this.src='https://placehold.co/400x300?text=Image+Unavailable';">
                                     <div class="saved-recipe-content">
                                         <h4>${recipe.title || 'Untitled Recipe'}</h4>
                                         <p>${recipe.description || 'No description'}</p>
@@ -896,6 +1172,27 @@
             function hideMessage() {
                 message.style.display = 'none';
             }
+
+            // --- Compact/Expanded View Toggle ---
+            const recipesContainer = document.getElementById('recipesContainer');
+            const toggleViewBtn = document.getElementById('toggleViewBtn');
+            // Load saved view mode
+            let compactView = localStorage.getItem('compactView') === 'true';
+            function updateViewMode() {
+                if (compactView) {
+                    recipesContainer.classList.add('compact-view');
+                    toggleViewBtn.textContent = 'Expanded View';
+                } else {
+                    recipesContainer.classList.remove('compact-view');
+                    toggleViewBtn.textContent = 'Compact View';
+                }
+            }
+            toggleViewBtn.addEventListener('click', () => {
+                compactView = !compactView;
+                localStorage.setItem('compactView', compactView);
+                updateViewMode();
+            });
+            updateViewMode();
         });
     </script>
 </body>

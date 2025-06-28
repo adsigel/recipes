@@ -1,18 +1,30 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from recipe_extractor import extract_recipe_data
 import json
 import os
+import requests
 from datetime import datetime, timezone
+from io import BytesIO
 
 app = Flask(__name__)
-# --- Database Configuration ---
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///recipes.db'
+
+# --- Production Configuration ---
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///recipes.db')
+if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-# Prevent browser caching during development
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Production settings
+if os.environ.get('FLASK_ENV') == 'production':
+    app.config['DEBUG'] = False
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache for static files
+else:
+    app.config['DEBUG'] = True
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # No cache during development
 
 db = SQLAlchemy(app)
 
@@ -195,6 +207,46 @@ def get_recipes():
 def get_tags():
     tags = Tag.query.all()
     return jsonify(tags=[tag.name for tag in tags])
+
+@app.route('/proxy_image')
+def proxy_image():
+    """Proxy images to handle Instagram CDN authentication issues on mobile."""
+    image_url = request.args.get('url')
+    if not image_url:
+        return jsonify({'error': 'No image URL provided'}), 400
+    
+    try:
+        # Set headers to mimic a browser request more effectively
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Referer': 'https://www.instagram.com/',
+            'Sec-Fetch-Dest': 'image',
+            'Sec-Fetch-Mode': 'no-cors',
+            'Sec-Fetch-Site': 'cross-site',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+        }
+        
+        response = requests.get(image_url, headers=headers, timeout=15, allow_redirects=True)
+        response.raise_for_status()
+        
+        # Create a BytesIO object from the image data
+        image_data = BytesIO(response.content)
+        
+        # Determine content type
+        content_type = response.headers.get('content-type', 'image/jpeg')
+        
+        # Return the image
+        image_data.seek(0)
+        return send_file(image_data, mimetype=content_type)
+        
+    except requests.RequestException as e:
+        print(f"Error proxying image {image_url}: {e}")
+        # Return a placeholder image instead of an error
+        return redirect('https://placehold.co/400x300?text=Image+Unavailable')
 
 @app.route('/recipe/<int:recipe_id>')
 def get_recipe(recipe_id):
