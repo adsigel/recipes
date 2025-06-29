@@ -87,36 +87,25 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# Log files
+# Environment files
+.env
+.env.local
+.env.production
+
+# Logs
 *.log
 logs/
 
-# Environment variables and secrets
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-secrets.json
-config.json
-
-# Test files (optional - you might want to keep some)
+# Test files
 test_*.py
-*_test.py
-test_manual_login.py
-test_extractor.py
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-
-# Migration files (optional - you might want to keep these)
 migrate_*.py
+nyt_extractor_progress.md
 
 # Documentation files that might contain sensitive info
-nyt_extractor_progress.md
+*.md
+!README.md
+!DEPLOYMENT.md
+!todo.md
 
 # Selenium and browser automation files
 geckodriver

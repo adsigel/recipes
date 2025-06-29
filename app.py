@@ -11,7 +11,7 @@ from io import BytesIO
 app = Flask(__name__)
 
 # --- Production Configuration ---
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///recipes.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:////app/instance/recipes.db')
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
     app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
 
@@ -155,7 +155,8 @@ def get_recipes():
 
     query = Recipe.query
 
-    if tag_filter:
+    # Only apply tag filter if a specific tag is selected (not "All")
+    if tag_filter and tag_filter != 'All':
         query = query.join(Recipe.tags).filter(Tag.name == tag_filter)
 
     if search_term:
@@ -349,8 +350,8 @@ class Tag(db.Model):
     def __repr__(self):
         return f'<Tag {self.name}>'
 
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+    # db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001) 
